@@ -29,3 +29,12 @@ Candidate essays mined from past work. Dates indicate when the original discussi
 
 8. **Two archetypes that survive the AI shift: creative builders and deep system experts** *(2026-05-18)*
    Notes for individual engineers on where to invest. Distillation of a talk + personal synthesis.
+
+9. **When an LLM call is "slow," suspect task-model fit before infra** *(2026-04-21)*
+   A 25-minute call wasn't capacity or auth — a reasoning model was burning tens of thousands of hidden chain-of-thought tokens on a binary classification. Also: default 5-minute network timeouts on a 25-minute response silently triggered 2–3 retries per success, tripling cost and latency. Big-prompt-one-call vs. many-small-prompts is a real design axis, and reasoning models punish you for collapsing it.
+
+10. **Static fields lie in distributed systems** *(2026-05-07)*
+    A clock helper used a process-local `static` monotonic counter to guarantee unique IDs. It looks like a global invariant at the call site and is useless across a fleet. Sub-lesson: uniqueness at one layer (100 ns ticks) is silently destroyed by formatting at the next (100 µs string) — any "unique because precise" guarantee must be traced end-to-end to where the value is actually compared.
+
+11. **The three logging blind spots that recur in every service** *(2026-05-08)*
+    A reusable checklist for any observability pass: (1) no log at the pass/fail *decision point* of a gate; (2) telemetry/side-effect exceptions silently swallowed instead of logged as warnings; (3) parser/extractor failures that return defaults without recording why. These three cover most "we had no idea why prod did that" incidents. Pairs with: ship a focused important-only PR first, not one mega-PR.
