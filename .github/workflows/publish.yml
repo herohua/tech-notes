@@ -1,0 +1,72 @@
+name: Publish notes to herohua.github.io
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: publish-site
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout tech-notes
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install pyyaml
+
+      - name: Build posts
+        run: python scripts/build_posts.py
+
+      - name: Set up SSH deploy key
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SITE_DEPLOY_KEY }}
+
+      - name: Checkout target site
+        run: |
+          git clone git@github.com:herohua/herohua.github.io.git site
+          cd site
+          git config user.name "tech-notes bot"
+          git config user.email "tech-notes-bot@users.noreply.github.com"
+
+      - name: Sync generated content
+        run: |
+          set -e
+          rm -rf site/assets/notes
+          mkdir -p site/_posts site/assets
+          # Remove previously published notes (any post we generated) before re-syncing.
+          # We track generated posts via a manifest committed alongside them.
+          if [ -f site/.tech-notes-manifest ]; then
+            while IFS= read -r f; do
+              [ -n "$f" ] && rm -f "site/_posts/$f"
+            done < site/.tech-notes-manifest
+          fi
+          if [ -d build/_posts ]; then
+            cp -v build/_posts/*.md site/_posts/ 2>/dev/null || true
+            (cd build/_posts && ls -1 *.md 2>/dev/null) > site/.tech-notes-manifest || true
+          fi
+          if [ -d build/assets/notes ]; then
+            cp -rv build/assets/notes site/assets/
+          fi
+
+      - name: Commit and push
+        run: |
+          cd site
+          git add _posts assets/notes .tech-notes-manifest 2>/dev/null || true
+          if git diff --cached --quiet; then
+            echo "No changes to publish."
+            exit 0
+          fi
+          SHORT_SHA=$(echo "$GITHUB_SHA" | cut -c1-7)
+          git commit -m "Sync notes from tech-notes@${SHORT_SHA}"
+          git push origin HEAD:master
