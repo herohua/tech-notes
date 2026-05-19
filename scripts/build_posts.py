@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import os
 import re
 import shutil
 import sys
@@ -21,6 +22,10 @@ ASSETS_OUT = BUILD_DIR / "assets" / "notes"
 FRONT_MATTER_RE = re.compile(r"^---\s*\n(.*?)\n---\s*\n(.*)$", re.DOTALL)
 IMAGE_PATH_RE = re.compile(r"(!\[[^\]]*\]\()(?:\.\./)?images/([^)]+)(\))")
 SLUG_RE = re.compile(r"[^a-z0-9]+")
+
+SOURCE_REPO = os.environ.get("SOURCE_REPO", "herohua/tech-notes")
+SOURCE_SHA = os.environ.get("GITHUB_SHA", "")
+SOURCE_REF = SOURCE_SHA or os.environ.get("SOURCE_REF", "main")
 
 
 def slugify(text: str) -> str:
@@ -76,6 +81,9 @@ def build() -> list[Path]:
         new_fm = {"layout": "post", "title": str(title), "date": post_date.isoformat()}
         if fm.get("tags"):
             new_fm["tags"] = fm["tags"]
+        new_fm["source_url"] = f"https://github.com/{SOURCE_REPO}/blob/{SOURCE_REF}/notes/{note_path.name}"
+        if SOURCE_SHA:
+            new_fm["source_commit"] = SOURCE_SHA
 
         out = POSTS_OUT / post_name
         fm_yaml = yaml.safe_dump(new_fm, sort_keys=False, allow_unicode=True).strip()
