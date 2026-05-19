@@ -38,3 +38,6 @@ Candidate essays mined from past work. Dates indicate when the original discussi
 
 11. **The three logging blind spots that recur in every service** *(2026-05-08)*
     A reusable checklist for any observability pass: (1) no log at the pass/fail *decision point* of a gate; (2) telemetry/side-effect exceptions silently swallowed instead of logged as warnings; (3) parser/extractor failures that return defaults without recording why. These three cover most "we had no idea why prod did that" incidents. Pairs with: ship a focused important-only PR first, not one mega-PR.
+
+12. **Stop calling all three things "agent": model-call, tool-orchestrator, goal-seeking loop** *(2026-05-14)*
+    Useful framing for any AI write-up. Concrete diagnostic questions: is there a real loop per API call? Does anything check whether the user's purpose was met before returning? Most "agents" are model-calls in a coat; collapsing the three hides the interesting design differences.
