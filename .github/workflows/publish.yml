@@ -69,4 +69,4 @@ jobs:
           fi
           SHORT_SHA=$(echo "$GITHUB_SHA" | cut -c1-7)
           git commit -m "Sync notes from tech-notes@${SHORT_SHA}"
-          git push origin HEAD:master
+          git push origin HEAD:main
