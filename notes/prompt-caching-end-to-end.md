@@ -44,10 +44,10 @@ Every production prefix cache I have used — Anthropic's, Azure OpenAI's, Bedro
 
 ```mermaid
 flowchart TD
-    A["System prompt<br/>(deploy-stable)"] --> B["Tool definitions<br/>(release-stable)"]
-    B --> C["Session context<br/>(conversation-stable)"]
-    C --> D["Turn-local facts<br/>(per-request)"]
-    D --> E["User message<br/>(volatile)"]
+    A["System prompt (deploy-stable)"] --> B["Tool definitions (release-stable)"]
+    B --> C["Session context (conversation-stable)"]
+    C --> D["Turn-local facts (per-request)"]
+    D --> E["User message (volatile)"]
     classDef cached fill:#e6f4ea,stroke:#1e8e3e,color:#000
     classDef hot fill:#fce8e6,stroke:#c5221f,color:#000
     class A,B,C cached
@@ -116,11 +116,11 @@ The math is unkind. Uniform fan-out across *N* instances gives a per-turn hit ra
 
 ```mermaid
 flowchart LR
-    C["Client / harness"] --> R["Shared routing layer<br/>(load balance, retry, quota pooling)"]
-    R --> I1["AOAI instance 1<br/>cache: { prefix_A }"]
-    R --> I2["AOAI instance 2<br/>cache: { prefix_A }"]
-    R --> I3["AOAI instance 3<br/>cache: { }"]
-    R --> I4["AOAI instance 4<br/>cache: { }"]
+    C["Client / harness"] --> R["Shared routing layer: load balance, retry, quota pooling"]
+    R --> I1["AOAI instance 1 — cache: prefix_A"]
+    R --> I2["AOAI instance 2 — cache: prefix_A"]
+    R --> I3["AOAI instance 3 — cache: empty"]
+    R --> I4["AOAI instance 4 — cache: empty"]
     classDef warm fill:#e6f4ea,stroke:#1e8e3e,color:#000
     classDef cold fill:#fce8e6,stroke:#c5221f,color:#000
     class I1,I2 warm
