@@ -44,10 +44,10 @@ Every production prefix cache I have used — Anthropic's, Azure OpenAI's, Bedro
 
 ```mermaid
 flowchart TD
-    A["System prompt (deploy-stable)"] --> B["Tool definitions (release-stable)"]
-    B --> C["Session context (conversation-stable)"]
-    C --> D["Turn-local facts (per-request)"]
-    D --> E["User message (volatile)"]
+    A["System prompt — deploy-stable"] --> B["Tool definitions — release-stable"]
+    B --> C["Session context — conversation-stable"]
+    C --> D["Turn-local facts — per-request"]
+    D --> E["User message — volatile"]
     classDef cached fill:#e6f4ea,stroke:#1e8e3e,color:#000
     classDef hot fill:#fce8e6,stroke:#c5221f,color:#000
     class A,B,C cached
