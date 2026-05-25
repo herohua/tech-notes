@@ -129,15 +129,12 @@ flowchart LR
 
 Diagnostic signature: per-turn hit rate climbs along the *(1 − 1/N)^(k−1)* curve instead of saturating after turn 2. If turn 2 sits near *1/N* and turn 6 is still well below 1, the prefix is probably fine and the router is the culprit.
 
-Five options, different costs:
+Two practical fixes:
 
 - **Session affinity at the router.** Hash on conversation id; pin a session to one backend. Cheapest, biggest single win, often a config change. Cost: uneven load — chatty sessions concentrate, quiet regions idle.
 - **Cache-aware routing.** Router keeps a short-TTL index of "which backend saw which prefix hash" and prefers that backend. Effectively CDN logic for prompts. Preserves load-balancing for cold traffic, warms for repeat traffic.
-- **Lift the cache above the pool.** A thin layer materializes the cached KV state once and shares it across backends. Architecturally satisfying, by far the most expensive — usually means running your own inference layer.
-- **Reduce N.** Some pools exist for historical reasons (three regions for a once-feared outage, eight subscriptions for quota fragmentation). Consolidation raises per-instance hit rate mechanically. Procurement conversation, no code.
-- **Accept the ceiling.** If the pool is load-bearing for reasons unrelated to caching, model the *1/N* warm-up explicitly in your cost forecast and stop chasing a number the architecture can't give you.
 
-These trade fairness, complexity, and unit economics against each other based on session length, prefix stability, and how much of your bill is prefix tokens. Prompt-assembly fixes are *prerequisites*, not the destination — once the prefix is deterministic and the metric is honest, the architecture question above it becomes visible.
+These trade fairness and complexity against each other based on session length, prefix stability, and how much of your bill is prefix tokens. Prompt-assembly fixes are *prerequisites*, not the destination — once the prefix is deterministic and the metric is honest, the architecture question above it becomes visible.
 
 ## Closing
 
