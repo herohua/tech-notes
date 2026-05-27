@@ -70,7 +70,7 @@ flowchart LR
 
 The principle: **no single layer is trusted on its own.** Each grader exists because one of the others can be fooled. The `llm-rubric` can be talked into a passing score by a confident-but-wrong agent; `build-validation` can't. `build-validation` doesn't care about content quality as long as the violation disappears; `llm-rubric` does. `tool-calls` catches "the agent did the right thing for the wrong reasons" — including the *never-do-this* invariants that prompt-only mitigations drift away from across model versions.
 
-If you take only one thing from this section: **agent evals are not LLM evals plus tool tracing. They are two parallel grading tracks — artifact and behavior — and both must pass.**
+If you take only one thing from this section: **agent evals are not LLM output grading with tool traces attached for debugging. The trajectory needs its own pass/fail graders, running in parallel with the artifact graders — and both tracks must pass.**
 
 ## 3. Agentize every step of the iteration loop
 
