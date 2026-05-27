@@ -80,7 +80,7 @@ The core observation: **an AI agent is not a static artifact you design once and
 
 This is why I'd put "agentize the iteration loop" above almost any other engineering investment for a team building an agent. The model is going to keep changing under you. The prompt is going to keep changing. The rules, the data, the graders — all of it is in motion, and loop speed is what lets you keep up.
 
-Early on, one full cycle of *generate dataset → run eval → review failures → improve* for a single new rule took about **three days** of mostly manual work. Today the same loop runs in roughly **one hour per rule** — a compression that is the only reason it was realistic to bring a dozen-plus rules to production quality in months instead of years, and that compounds across every future rule we add.
+Early on, one full cycle of *generate dataset → run eval → review failures → improve* for a single new rule took about **three days** of mostly manual work. Today the same loop runs in roughly **one hour per rule** — a compression that is the only reason it was realistic to bring a dozen-plus rules to production quality in weeks instead of months, and that compounds across every future rule we add.
 
 The single biggest lever was wrapping each step a human used to do — dataset generation, eval execution, failure triage, per-rule knowledge-base lookup, fix-guidance updates — as an agent-callable skill. And just as importantly, we made them *compose*, so a failure surfaced by one skill flows straight into the next without manual glue.
 
