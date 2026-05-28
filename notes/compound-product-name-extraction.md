@@ -186,19 +186,19 @@ The most common alternative pipeline shapes each have a specific failure mode wo
 
 ### "Just ask the LLM"
 
-Hand the model the document and the taxonomy in one call, get back spans and canonical names. Simple — but:
+Hand the model the document and the full taxonomy in one call, get back the mentions. Simple — and modern context windows can fit a few-thousand-entry taxonomy comfortably. The real problems are subtler:
 
-- **Position drift.** Models reliably tell you *what* they found, unreliably tell you *where*. Off-by-one offsets, boundaries that snap to model token boundaries instead of character boundaries, missed second-mentions in a paragraph that says the name three times. Fatal for find-and-replace.
-- **Quiet hallucination of canonical names.** Ask for "the official name" and the model will produce something that *sounds* official but isn't actually in the taxonomy. Constrained decoding helps for the name field but doesn't fix span boundaries.
-- **Non-determinism in a deterministic problem.** Two runs over the same input can produce slightly different spans even at temperature 0, especially with long prompts. The deterministic stack gives you reproducibility for free.
-- **Cost scales with content, not with novelty.** The model pays full attention to every paragraph, including the 80% that have zero brand mentions and could have been ruled out by a one-pass dictionary scan.
+- **Recall is bounded by attention, not by what's in the prompt.** A taxonomy in-context doesn't get enumerated against every paragraph — the model skims, and entries in the middle of a long list get under-attended ("lost in the middle"). A new product on row 4,000 gets noticed less often than one on row 5. The deterministic spotter doesn't skim; it checks every alias against every position. Recall is *guaranteed by construction*, not approximated by attention.
+- **Quiet hallucination of canonical names.** Ask for "the official name" and the model will produce something that *sounds* official but isn't actually in the taxonomy. Constrained decoding helps when the model can return a structured list of names. If the output format is a rewritten document with placeholders (e.g. `<====Azure AD====>`), you still need a post-processing step that maps each emitted name to a taxonomy entry and rejects unmatched ones.
+- **Document-rewrite outputs amplify drift.** A common workaround for span precision is asking the model to emit the document back with placeholders inserted — boundaries become a parser problem, not a model problem. This *does* solve position accuracy, but introduces its own failure mode: models silently skip paragraphs, paraphrase sentences, or truncate at the end. For find-and-replace on production content this is a hard blocker without a diff verifier ("rewritten text equals original except for inserted placeholders, else reject"), which is real complexity.
+- **Cost scales with content, twice over.** The model reads every paragraph (input tokens) and, in the rewrite shape, writes a near-copy back (output tokens — typically 3–5× more expensive). The deterministic pre-filter shrinks the LLM's job to a small candidate list, so you pay output tokens only on the genuinely ambiguous parts.
+- **Non-determinism in a deterministic problem.** Two runs over the same input can produce slightly different outputs even at temperature 0, especially with long prompts. The deterministic stack gives you reproducibility for free.
+
+If your documents are short, your taxonomy is small, you have a diff verifier, and cost-per-doc isn't load-bearing, the LLM-only shape can be a perfectly valid pipeline. The cascade earns its place when *any* of those conditions stops holding — especially recall on products the model has never seen.
 
 ### "LLM first, taxonomy confirms"
 
-Let the model propose candidates, look each one up in the taxonomy to confirm. Better, but:
-
-- **Recall is bounded by the model's training data, not your taxonomy.** Products the model has never seen — new ones, renamed ones, obscure SKUs — simply don't get proposed. Your taxonomy knows them; the model doesn't; the confirmation step can't rescue what was never proposed.
-- The model still controls span boundaries, so the position-drift problem from "just ask the LLM" stays.
+Let the model propose candidates, look each one up in the taxonomy to confirm. Better than no taxonomy at all — but recall is still bounded by what the model proposes, not by what's in your list. Products the model has never seen (new ones, renamed ones, obscure SKUs) simply don't get proposed; the confirmation step can't rescue what was never proposed. Your taxonomy knows them; the model doesn't.
 
 ### "Dictionary only, no LLM"
 
