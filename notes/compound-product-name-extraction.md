@@ -249,7 +249,7 @@ Even within the "use this shape" case, several stages are deliberately simpler t
 
 | This pipeline | Current state of the art | Why we diverge |
 |---|---|---|
-| **Levenshtein ratio ≥ 80** for matching the *surface form* — the exact spelling as it appears in text | **Learned similarity** — small neural models trained to score string-pair similarity ([sentence-transformers](https://www.sbert.net/), cross-encoder rerankers) | No training data, no GPU at inference (see *Honest limits* for the cost). |
+| **Levenshtein ratio ≥ 80** for matching the *surface form* — the exact spelling as it appears in text | **Learned similarity** — small neural models trained to score string-pair similarity ([sentence-transformers](https://www.sbert.net/), *cross-encoder rerankers* — a model that takes a candidate match and the surrounding text together and scores how well they fit) | No training data, no GPU at inference (see *Honest limits* for the cost). |
 | **Curated common-word blocklist** | **Learned context classifier** that decides per-mention whether the surrounding text is product-shaped | The blocklist's failure mode is visible; a learned classifier's is not. |
 | **Generative LLM as the reranker** | **Purpose-built cross-encoder rerankers** ([BLINK](https://arxiv.org/abs/1911.03814)-style) trained on linked entity pairs | The LLM is already in the stack; adding a second specialized model is more infrastructure for marginal gain. |
 | **Closed-world taxonomy, gazetteer-first** | **Zero-shot / open-vocabulary extraction** ([GLiNER](https://arxiv.org/abs/2311.08526), generative linkers like [GENRE](https://arxiv.org/abs/2010.00904)) | We *want* the closed world — recall must be bounded by the taxonomy, not by what the model happens to know. |
