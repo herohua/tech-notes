@@ -239,7 +239,7 @@ The pipeline has real weaknesses worth naming:
 
 **Reach for something else when:**
 
-- The taxonomy has tens of thousands of items or more — surface-matching alone breaks down; you'll want a smarter way to narrow candidates first.
+- The fuzzy-match stage becomes the bottleneck — at tens of thousands of aliases its *candidates × aliases* scoring cost gets painful. Cheap fixes (blocking by first letter or shared token, or skipping fuzzy entirely and accepting that "AzureAD" without a space gets missed) buy headroom; past that, you'll want search-engine-style retrieval to narrow candidates before scoring, in the shape of systems like [BLINK](https://arxiv.org/abs/1911.03814).
 - The task is open-domain extraction with no fixed vocabulary — use a model designed for that.
 - Catching novel phrasings matters more than exact positions — an LLM-first pipeline with constrained decoding wins on the long tail, at the cost of position stability.
 
