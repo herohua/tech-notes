@@ -21,6 +21,7 @@ ASSETS_OUT = BUILD_DIR / "assets" / "notes"
 
 FRONT_MATTER_RE = re.compile(r"^---\s*\n(.*?)\n---\s*\n(.*)$", re.DOTALL)
 IMAGE_PATH_RE = re.compile(r"(!\[[^\]]*\]\()(?:\.\./)?images/([^)]+)(\))")
+NOTE_LINK_RE = re.compile(r"(?<!!)(\[[^\]]+\]\()(?:\.\/)?([A-Za-z0-9_-]+)\.md(#[^)\s]*)?(\))")
 SLUG_RE = re.compile(r"[^a-z0-9]+")
 
 SOURCE_REPO = os.environ.get("SOURCE_REPO", "herohua/tech-notes")
@@ -49,15 +50,21 @@ def build() -> list[Path]:
     POSTS_OUT.mkdir(parents=True)
     ASSETS_OUT.mkdir(parents=True)
 
-    published: list[Path] = []
-    used_images: set[str] = set()
-
+    notes: list[tuple[Path, dict, str]] = []
+    publishable_stems: set[str] = set()
     for note_path in sorted(NOTES_DIR.glob("*.md")):
         parsed = parse_note(note_path)
         if parsed is None:
             continue
         fm, body = parsed
+        notes.append((note_path, fm, body))
+        if fm.get("publish"):
+            publishable_stems.add(note_path.stem)
 
+    published: list[Path] = []
+    used_images: set[str] = set()
+
+    for note_path, fm, body in notes:
         if not fm.get("publish"):
             print(f"  draft: {note_path.name}")
             continue
@@ -77,6 +84,18 @@ def build() -> list[Path]:
         for _, img, _ in IMAGE_PATH_RE.findall(body):
             used_images.add(img)
         body = IMAGE_PATH_RE.sub(r"\1/assets/notes/\2\3", body)
+
+        def rewrite_note_link(match: re.Match) -> str:
+            label_open, target_stem, anchor, close = match.groups()
+            if target_stem not in publishable_stems:
+                print(
+                    f"  WARN: {note_path.name} links to unpublished/missing note '{target_stem}.md'",
+                    file=sys.stderr,
+                )
+                return match.group(0)
+            return f"{label_open}/{target_stem}{anchor or ''}{close}"
+
+        body = NOTE_LINK_RE.sub(rewrite_note_link, body)
 
         new_fm = {"layout": "post", "title": str(title), "date": post_date.isoformat()}
         if fm.get("tags"):
